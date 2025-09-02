@@ -1,0 +1,338 @@
+:root{
+  --brand:#6e0329;
+  --bg:#f6f8fb;
+}
+html,body{background:var(--bg);}
+.navbar{backdrop-filter:saturate(120%) blur(6px);}
+.brand-gradient{background:linear-gradient(135deg,var(--brand) 0%,#FF1453 100%);}
+.product-card{border:0;border-radius:1rem;overflow:hidden;background:#fff;
+  box-shadow:0 6px 18px rgba(2,8,20,.06);transition:transform .2s ease, box-shadow .2s ease;}
+.product-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(2,8,20,.12);}
+.product-card img{object-fit:cover;height:210px;}
+.price{font-weight:700;color:#6e0329;}
+.toolbar-card{border:0;box-shadow:0 6px 20px rgba(13,110,253,.08);}
+.toolbar-card .form-select,.toolbar-card .form-control{border-radius:999px;}
+.size-pill input{display:none;}
+.size-pill label{border:1px solid #ced4da;border-radius:999px;padding:.35rem .7rem;margin-right:.35rem;cursor:pointer;font-size:.9rem;}
+.size-pill input:checked + label{background:#6e0329;color:#fff;border-color:#6e0329;}
+.footer{color:#6c757d;}
+.ribbon{position:absolute;top:.75rem;left:.75rem;}
+.badge-limited{background:#dc3545;}
+
+/* Billboard section */
+#billboard {
+  position: relative;
+  width: 100%;
+  height: 500px; /* Set a fixed height for the slider */
+  overflow: hidden;
+}
+
+/* Swiper container */
+.main-swiper {
+  width: 100%;
+  height: 100%;
+}
+
+/* Swiper slide */
+.swiper-slide {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Banner content */
+.banner-content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.banner-content .container {
+  max-width: 1200px;
+}
+
+.banner-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.banner-content p {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-wrap .btn {
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.btn-light {
+  background-color: #fff;
+  color: #000;
+  border: none;
+}
+
+.btn-light:hover {
+  background-color: #f0f0f0;
+}
+
+/* Navigation buttons */
+.button-prev,
+.button-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.5);
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button-prev:hover,
+.button-next:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.button-prev {
+  left: 20px;
+}
+
+.button-next {
+  right: 20px;
+}
+
+/* Icon styles for arrows */
+.icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.icon-chevron-left {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>');
+}
+
+.icon-chevron-right {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>');
+}
+
+.icon-arrow-io {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>');
+}
+
+/* Swiper pagination */
+.swiper-pagination {
+  position: absolute;
+  bottom: 20px;
+  text-align: center;
+  z-index: 10;
+}
+
+.swiper-pagination-bullet {
+  background: #fff;
+  opacity: 0.7;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px;
+}
+
+.swiper-pagination-bullet-active {
+  background: #fff;
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #billboard {
+    height: 400px;
+  }
+
+  .banner-title {
+    font-size: 2rem;
+  }
+
+  .banner-content p {
+    font-size: 1rem;
+  }
+
+  .button-prev,
+  .button-next {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 576px) {
+  #billboard {
+    height: 300px;
+  }
+
+  .banner-title {
+    font-size: 1.5rem;
+  }
+
+  .banner-content p {
+    font-size: 0.9rem;
+  }
+}
+
+/* Change the default primary button */
+.btn-primary {
+  background-color: #6e0329;  /* New background color */
+  border-color: #6e0329;      /* Border color */
+}
+
+/* Change text color */
+.btn-primary, .btn-primary:hover {
+  color: #fff;  /* White text */
+}
+
+/* Hover effect */
+.btn-primary:hover {
+  background-color: #FF1453;  /* Lighter brand color */
+  border-color: #FF1453;
+}
+
+.btn-cart {
+  background-color: var(--brand);  /* your brand color (#6e0329) */
+  color: #fff !important;
+  border: none;
+  border-radius: 999px; /* pill shape */
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+.btn-cart:hover {
+  background-color: #FF1453; /* hover effect */
+}
+
+/* Change KKFS Merch brand color */
+.navbar-brand {
+  color: #6e0329 !important;   /* brand red */
+  font-weight: 700;            /* optional: make it bold */
+}
+
+
+.btn-primary,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary:visited {
+  background-color: var(--brand) !important;  /* your dark red */
+  border-color: var(--brand) !important;
+  color: #fff !important;
+  box-shadow: none !important; /* removes Bootstrap blue glow */
+}
+
+/* Hover effect */
+.btn-primary:hover {
+  background-color: #FF1453 !important;  /* lighter red */
+  border-color: #FF1453 !important;
+  color: #fff !important;
+}
+
+/* Navbar Cart: outline by default, fill on hover/press, no blue flash */
+.navbar .btn-outline-primary {
+  /* default (outline) */
+  background-color: #fff !important;           /* "empty" look */
+  color: var(--brand) !important;              /* #6e0329 */
+  border-color: var(--brand) !important;
+  border-radius: 999px;
+  box-shadow: none !important;                 /* kill blue glow */
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+
+/* hover / focus / active -> filled red */
+.navbar .btn-outline-primary:hover,
+.navbar .btn-outline-primary:focus,
+.navbar .btn-outline-primary:active {
+  background-color: var(--brand) !important;
+  border-color: var(--brand) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+/* just in case */
+.navbar .btn-outline-primary:focus-visible,
+.navbar .btn-outline-primary:active:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+
+.btn, .btn-sm, .btn-outline-primary{
+  background-color: var(--brand) !important;  /* your dark red */
+  border-color: var(--brand) !important;
+  color: #fff !important;
+  box-shadow: none !important; /* removes Bootstrap blue glow */
+}
+
+/* Hover effect */
+.btn-sm:hover {
+  background-color: #FF1453 !important;  /* lighter red */
+  border-color: #FF1453 !important;
+  color: #fff !important;
+}
+
+
+/* Swiper pagination – brand red */
+:root{
+  --swiper-theme-color: var(--brand);        /* global Swiper color */
+  --swiper-pagination-color: var(--brand);   /* explicitly for bullets */
+}
+
+.main-swiper .swiper-pagination-bullet {
+  background: var(--brand) !important;   /* #6e0329 */
+  opacity: .35;
+}
+
+.main-swiper .swiper-pagination-bullet-active {
+  background: #FF1453 !important;        /* lighter red for active */
+  opacity: 1;
+}
+
+/* If you're styling the links inside the <footer> element */
+footer .nav-link:hover,
+footer .nav-link:focus,
+footer .nav-link:active {
+  color: #6e0329 !important;
+}
+
+/* If the <a> has both classes: class="nav-link footer" */
+.nav-link.footer:hover,
+.nav-link.footer:focus,
+.nav-link.footer:active {
+  color: #6e0329 !important;
+}
+
+#billboard .swiper-slide {
+  justify-content: flex-start;        /* left-align flex children */
+}
+
+#billboard .banner-content .container {
+  margin-left: 0;
+  margin-right: auto;
+  padding-left: 200px;  /* adjust this value */
+  padding-top: 40px;   /* moves it downward */
+}
+
+#billboard .banner-content {
+  text-align: left;                   /* ensure text is left-aligned */
+}
