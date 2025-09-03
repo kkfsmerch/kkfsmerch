@@ -146,46 +146,35 @@
           cm.hide();
           document.getElementById('success').innerHTML = `
             <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
-          
-          // TODO: Google Sheets integration will go here
-          // This is where you'll add your spreadsheet code to send order data
-
-          if (order) {
-  cm.hide();
-  document.getElementById('success').innerHTML = `
-    <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
-
-  // --- Google Sheets integration starts here ---
-        const user = STORE.user; // Firebase authenticated user
-        const email = user?.email || '';
-      
-        const payload = {
-          customer: { 
-            email: email,
-            name: name, 
-            grade: gradeNum
-          },
-          items: cart.map(i => ({
-            name: i.name,
-            qty: i.qty,
-            price: i.price
-          }))
-        };
-      
-        try {
-          await fetch('https://script.google.com/macros/s/AKfycbyvRkmodKP7nQsHhtl3sCa-2snIpVx8Qxkdh-VJdKhTe1XozDQ7KbqklXe9BSVTSn63Qg/exec', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-        } catch (err) {
-          console.error('Failed to log order to Google Sheets', err);
+        
+          // --- Google Sheets integration ---
+          const user = STORE.user;
+          const email = user?.email || '';
+        
+          const payload = {
+            customer: { email, name, grade: gradeNum },
+            items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price }))
+          };
+        
+          try {
+            const res = await fetch('https://script.google.com/macros/s/.../exec', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            console.log('Sheets response:', data); // <-- log response
+          } catch (err) {
+            console.error('Failed to log order to Google Sheets', err);
+          }
+          // --- End Sheets integration ---
+        
+          render(); // Clear cart and re-render
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          alert('Checkout failed. Please try again.');
         }
-        // --- Google Sheets integration ends here ---
-      
-        render(); // Re-render to show empty cart
-        window.scrollTo({top:0, behavior:'smooth'});
-      }
+
 
 
 
