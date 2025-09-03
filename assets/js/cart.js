@@ -171,27 +171,17 @@
         
           render(); // Clear cart and re-render
           window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
+          } else {
+            alert('Checkout failed. Please try again.');
+          }
+        } catch (error) {
+          console.error('Checkout error:', error);
           alert('Checkout failed. Please try again.');
+        } finally {
+          placeOrderBtn.disabled = false;
+          placeOrderBtn.textContent = 'Place order';
         }
 
-
-
-
-
-          
-          render(); // Re-render to show empty cart
-          window.scrollTo({top:0, behavior:'smooth'});
-        } else {
-          alert('Checkout failed. Please try again.');
-        }
-      } catch (error) {
-        console.error('Checkout error:', error);
-        alert('Checkout failed. Please try again.');
-      } finally {
-        placeOrderBtn.disabled = false;
-        placeOrderBtn.textContent = 'Place order';
-      }
     };
   });
 
