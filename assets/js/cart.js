@@ -68,6 +68,12 @@
     try {
       console.log('Submitting payload to Google Sheets:', payload);
       
+      // Validate payload structure
+      if (!payload.customer || !payload.items || !Array.isArray(payload.items)) {
+        console.error('Invalid payload structure:', payload);
+        return;
+      }
+
       // Create a hidden form
       const form = document.createElement('form');
       form.method = 'POST';
@@ -75,10 +81,10 @@
       form.target = 'hidden_iframe';
       form.style.display = 'none';
 
-      // Add data as form field - Apps Script expects e.postData.contents
+      // Add data directly as JSON in the form body for e.postData.contents
       const dataField = document.createElement('input');
       dataField.type = 'hidden';
-      dataField.name = 'data';
+      dataField.name = 'postData';
       dataField.value = JSON.stringify(payload);
       form.appendChild(dataField);
 
@@ -89,6 +95,12 @@
         iframe.id = 'hidden_iframe';
         iframe.name = 'hidden_iframe';
         iframe.style.display = 'none';
+        
+        // Optional: Add load event listener to iframe for debugging
+        iframe.onload = function() {
+          console.log('Google Sheets submission completed');
+        };
+        
         document.body.appendChild(iframe);
       }
 
@@ -101,9 +113,9 @@
         if (document.body.contains(form)) {
           document.body.removeChild(form);
         }
-      }, 2000);
+      }, 3000); // Increased timeout for better reliability
       
-      console.log('Order data submitted to Google Sheets successfully');
+      console.log('Order form submitted to Google Sheets');
       
     } catch (err) {
       console.error('Google Sheets submission failed:', err);
@@ -140,7 +152,7 @@
                   onfocus="if(this.value==1)this.value='';"
                   oninput="if(this.value>12)this.value=12"
                   onblur="if(!this.value || this.value<1)this.value=1"
-                  onkeypress="return /[0-9]/.test(event.key)"
+                  onkeypress="return /[1-9]/.test(event.key)"
                 >
               </div>
             </div>
