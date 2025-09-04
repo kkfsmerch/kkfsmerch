@@ -1,4 +1,4 @@
-// cart.js - renders cart page and Firebase checkout
+// cart.js - renders cart page and Firebase checkout with Google Sheets integration
 (function(){
   const $ = s => document.querySelector(s);
   const list = $('#cartItems');
@@ -66,14 +66,16 @@
   // Function to submit data via hidden form (bypasses CORS completely)
   function submitToGoogleSheets(payload) {
     try {
+      console.log('Submitting payload to Google Sheets:', payload);
+      
       // Create a hidden form
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = 'https://script.google.com/macros/s/AKfycbyM7cr8LwwWTjjschpLr26MIC0GOaXPNJE35RoE1ZkTF6oKRKmqztbb0Lzw_Y3LNo9K4Q/exec';
-      form.target = 'hidden_iframe'; // Submit to hidden iframe
+      form.target = 'hidden_iframe';
       form.style.display = 'none';
 
-      // Add data as form fields
+      // Add data as form field - Apps Script expects e.postData.contents
       const dataField = document.createElement('input');
       dataField.type = 'hidden';
       dataField.name = 'data';
@@ -94,15 +96,18 @@
       document.body.appendChild(form);
       form.submit();
       
-      // Clean up
+      // Clean up after submission
       setTimeout(() => {
-        document.body.removeChild(form);
-      }, 1000);
+        if (document.body.contains(form)) {
+          document.body.removeChild(form);
+        }
+      }, 2000);
       
-      console.log('Order data submitted to Google Sheets via form');
+      console.log('Order data submitted to Google Sheets successfully');
       
     } catch (err) {
-      console.error('Form submission failed:', err);
+      console.error('Google Sheets submission failed:', err);
+      // Don't throw error - this shouldn't prevent checkout completion
     }
   }
 
@@ -135,7 +140,7 @@
                   onfocus="if(this.value==1)this.value='';"
                   oninput="if(this.value>12)this.value=12"
                   onblur="if(!this.value || this.value<1)this.value=1"
-                  onkeypress="return /[1-9]/.test(event.key)"
+                  onkeypress="return /[0-9]/.test(event.key)"
                 >
               </div>
             </div>
@@ -175,6 +180,10 @@
         const cart = await STORE.getCart();
         console.log('Cart before checkout:', cart);
 
+        if (cart.length === 0) {
+          throw new Error('Cart is empty');
+        }
+
         const customerInfo = { name, grade: gradeNum };
         const checkoutResult = await STORE.checkout(customerInfo);
         
@@ -185,21 +194,34 @@
           throw new Error('Checkout returned false/null');
         }
 
-        // Close modal and show success
+        // Close modal first
         cm.hide();
+        
+        // Show success message
         document.getElementById('success').innerHTML = `
-          <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
+          <div class="alert alert-success mt-3">✅ Order confirmed! Your order has been submitted successfully.</div>`;
 
         // --- Google Sheets integration via form submission (NO CORS ISSUES) ---
         const user = STORE.user;
-        const email = user?.email || '';
+        const userEmail = user?.email || '';
 
+        // Format payload to match your Apps Script expectations
         const payload = {
-          customer: { email, name, grade: gradeNum },
-          items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price }))
+          customer: { 
+            email: userEmail, 
+            name: name, 
+            grade: gradeNum 
+          },
+          items: cart.map(item => ({ 
+            name: item.name, 
+            qty: item.qty, 
+            price: item.price 
+          }))
         };
 
-        // Submit via hidden form - this completely bypasses CORS
+        console.log('Formatted payload for Google Sheets:', payload);
+
+        // Submit to Google Sheets via hidden form - this completely bypasses CORS
         submitToGoogleSheets(payload);
         
         // --- End Sheets integration ---
@@ -214,7 +236,14 @@
         cm.hide();
         
         // Show error message
-        alert('Checkout failed. Please try again. Error: ' + error.message);
+        let errorMessage = 'Checkout failed. Please try again.';
+        if (error.message === 'Cart is empty') {
+          errorMessage = 'Your cart is empty. Please add items before checkout.';
+        } else if (error.message.includes('authentication')) {
+          errorMessage = 'Authentication error. Please log in again.';
+        }
+        
+        alert(errorMessage + ' Error: ' + error.message);
         
       } finally {
         placeOrderBtn.disabled = false;
