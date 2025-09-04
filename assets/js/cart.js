@@ -77,7 +77,7 @@
       // Create a hidden form
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = 'https://script.google.com/macros/s/AKfycbx_OuTk4MI2_tgWiQb6bKa9xrhkn0c0sfN6OQvn2YVT7NZguyim0c_qnvMtRuKZwzzqQg/exec';
+      form.action = 'YOUR_NEW_WEB_APP_URL_HERE'; // Replace with the URL that shows the working message
       form.target = 'hidden_iframe';
       form.style.display = 'none';
 
