@@ -92,7 +92,7 @@
                   onfocus="if(this.value==1)this.value='';"
                   oninput="if(this.value>12)this.value=12"
                   onblur="if(!this.value || this.value<1)this.value=1"
-                  onkeypress="return /[0-9]/.test(event.key)"
+                  onkeypress="return /[1-9]/.test(event.key)"
                 >
               </div>
             </div>
@@ -147,7 +147,7 @@
         document.getElementById('success').innerHTML = `
           <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
 
-        // --- Google Sheets integration ---
+        // --- Google Sheets integration with NO-PREFLIGHT approach ---
         const user = STORE.user;
         const email = user?.email || '';
 
@@ -157,14 +157,18 @@
         };
 
         try {
-          // Replace with your actual Google Sheets URL
-          const res = await fetch('https://script.google.com/macros/s/AKfycbyUNDziXoV8fIY6zCQG4Mjf7jt9EV44xdZQsrfBNRC9IfMHYuMU5WrjNH9955bMpGG0IQ/exec', {
+          // CHANGED: Use text/plain content type to avoid preflight
+          const res = await fetch('https://script.google.com/macros/s/AKfycbxUUvD9EO6Nrv16llEfJqFuNRqDO7_hsJTPopgGrHFhRT7U0fNejzLaYhFdQjZpeP9G1A/exec', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'text/plain;charset=utf-8'  // This avoids preflight!
+            },
             body: JSON.stringify(payload)
           });
-          const data = await res.json();
+          
+          const data = await res.text(); // Use .text() instead of .json()
           console.log('Sheets response:', data);
+          
         } catch(err){
           console.error('Failed to log order to Google Sheets', err);
           // Don't show error to user since main checkout succeeded
