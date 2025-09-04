@@ -128,11 +128,21 @@
       placeOrderBtn.textContent = 'Processing...';
 
       try {
+        // Get cart data BEFORE checkout (since checkout clears the cart)
+        const cart = await STORE.getCart();
+        console.log('Cart before checkout:', cart);
+
         const customerInfo = { name, grade: gradeNum };
-        await STORE.checkout(customerInfo); // Firebase checkout
+        const checkoutResult = await STORE.checkout(customerInfo);
+        
+        console.log('Checkout result:', checkoutResult);
+        
+        // Check if checkout was successful
+        if (!checkoutResult) {
+          throw new Error('Checkout returned false/null');
+        }
 
-        const cart = await STORE.getCart(); // <-- fetch cart here for Sheets
-
+        // Close modal and show success
         cm.hide();
         document.getElementById('success').innerHTML = `
           <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
@@ -147,7 +157,8 @@
         };
 
         try {
-          const res = await fetch('https://script.google.com/macros/s/.../exec', {
+          // Replace with your actual Google Sheets URL
+          const res = await fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -156,15 +167,22 @@
           console.log('Sheets response:', data);
         } catch(err){
           console.error('Failed to log order to Google Sheets', err);
+          // Don't show error to user since main checkout succeeded
         }
         // --- End Sheets integration ---
 
-        render(); // Clear cart
+        render(); // Clear cart display
         window.scrollTo({top:0, behavior:'smooth'});
 
       } catch(error){
         console.error('Checkout error:', error);
-        alert('Checkout failed. Please try again.');
+        
+        // Close modal first
+        cm.hide();
+        
+        // Show error message
+        alert('Checkout failed. Please try again. Error: ' + error.message);
+        
       } finally {
         placeOrderBtn.disabled = false;
         placeOrderBtn.textContent = 'Place order';
