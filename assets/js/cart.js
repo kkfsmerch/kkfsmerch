@@ -77,7 +77,7 @@
       // Create a hidden form
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = 'https://script.google.com/macros/s/AKfycbyM7cr8LwwWTjjschpLr26MIC0GOaXPNJE35RoE1ZkTF6oKRKmqztbb0Lzw_Y3LNo9K4Q/exec';
+      form.action = 'https://script.google.com/macros/s/AKfycbyrLRlELKu4uvwKOrzSix43wWCYnH004tPOeKeaYRlGfneWtVYRZsNugfmgJkKR6-4tfw/exec';
       form.target = 'hidden_iframe';
       form.style.display = 'none';
 
