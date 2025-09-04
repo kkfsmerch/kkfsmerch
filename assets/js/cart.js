@@ -63,6 +63,49 @@
     subtotalEl.textContent = STORE.fmt(STORE.total());
   }
 
+  // Function to submit data via hidden form (bypasses CORS completely)
+  function submitToGoogleSheets(payload) {
+    try {
+      // Create a hidden form
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = 'https://script.google.com/macros/s/AKfycbyUNDziXoV8fIY6zCQG4Mjf7jt9EV44xdZQsrfBNRC9IfMHYuMU5WrjNH9955bMpGG0IQ/exec';
+      form.target = 'hidden_iframe'; // Submit to hidden iframe
+      form.style.display = 'none';
+
+      // Add data as form fields
+      const dataField = document.createElement('input');
+      dataField.type = 'hidden';
+      dataField.name = 'data';
+      dataField.value = JSON.stringify(payload);
+      form.appendChild(dataField);
+
+      // Create hidden iframe to receive response
+      let iframe = document.getElementById('hidden_iframe');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'hidden_iframe';
+        iframe.name = 'hidden_iframe';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+      }
+
+      // Add form to page and submit
+      document.body.appendChild(form);
+      form.submit();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(form);
+      }, 1000);
+      
+      console.log('Order data submitted to Google Sheets via form');
+      
+    } catch (err) {
+      console.error('Form submission failed:', err);
+    }
+  }
+
   checkoutBtn?.addEventListener('click', ()=>{
     // Show checkout modal
     if(!document.getElementById('checkoutModal')){
@@ -147,7 +190,7 @@
         document.getElementById('success').innerHTML = `
           <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
 
-        // --- Google Sheets integration with NO-PREFLIGHT approach ---
+        // --- Google Sheets integration via form submission (NO CORS ISSUES) ---
         const user = STORE.user;
         const email = user?.email || '';
 
@@ -156,23 +199,9 @@
           items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price }))
         };
 
-        try {
-          // CHANGED: Use text/plain content type to avoid preflight
-          const res = await fetch('https://script.google.com/macros/s/AKfycbxUUvD9EO6Nrv16llEfJqFuNRqDO7_hsJTPopgGrHFhRT7U0fNejzLaYhFdQjZpeP9G1A/exec', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'text/plain;charset=utf-8'  // This avoids preflight!
-            },
-            body: JSON.stringify(payload)
-          });
-          
-          const data = await res.text(); // Use .text() instead of .json()
-          console.log('Sheets response:', data);
-          
-        } catch(err){
-          console.error('Failed to log order to Google Sheets', err);
-          // Don't show error to user since main checkout succeeded
-        }
+        // Submit via hidden form - this completely bypasses CORS
+        submitToGoogleSheets(payload);
+        
         // --- End Sheets integration ---
 
         render(); // Clear cart display
