@@ -158,7 +158,7 @@
 
         try {
           // Replace with your actual Google Sheets URL
-          const res = await fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+          const res = await fetch('https://script.google.com/macros/s/AKfycbyvRkmodKP7nQsHhtl3sCa-2snIpVx8Qxkdh-VJdKhTe1XozDQ7KbqklXe9BSVTSn63Qg/exec', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
