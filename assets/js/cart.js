@@ -63,7 +63,7 @@
     subtotalEl.textContent = STORE.fmt(STORE.total());
   }
 
-  // Function to submit data via hidden form (bypasses CORS completely)
+  // Function to submit data to Google Sheets via form submission
   function submitToGoogleSheets(payload) {
     try {
       console.log('Submitting payload to Google Sheets:', payload);
@@ -81,10 +81,10 @@
       form.target = 'hidden_iframe';
       form.style.display = 'none';
 
-      // Add data directly as JSON in the form body for e.postData.contents
+      // Add data as form parameter - MUST match Apps Script e.parameter.data
       const dataField = document.createElement('input');
       dataField.type = 'hidden';
-      dataField.name = 'postData';
+      dataField.name = 'data';  // Fixed: This must be 'data' to match Apps Script
       dataField.value = JSON.stringify(payload);
       form.appendChild(dataField);
 
@@ -96,26 +96,30 @@
         iframe.name = 'hidden_iframe';
         iframe.style.display = 'none';
         
-        // Optional: Add load event listener to iframe for debugging
+        // Add load event listener for debugging
         iframe.onload = function() {
           console.log('Google Sheets submission completed');
+        };
+        
+        iframe.onerror = function(error) {
+          console.error('Google Sheets submission error:', error);
         };
         
         document.body.appendChild(iframe);
       }
 
-      // Add form to page and submit
+      // Submit the form
       document.body.appendChild(form);
       form.submit();
       
-      // Clean up after submission
+      // Clean up the form after submission
       setTimeout(() => {
         if (document.body.contains(form)) {
           document.body.removeChild(form);
         }
-      }, 3000); // Increased timeout for better reliability
+      }, 3000);
       
-      console.log('Order form submitted to Google Sheets');
+      console.log('Order data submitted to Google Apps Script');
       
     } catch (err) {
       console.error('Google Sheets submission failed:', err);
@@ -213,16 +217,16 @@
         document.getElementById('success').innerHTML = `
           <div class="alert alert-success mt-3">✅ Order confirmed! Your order has been submitted successfully.</div>`;
 
-        // --- Google Sheets integration via form submission (NO CORS ISSUES) ---
+        // --- Google Sheets integration ---
         const user = STORE.user;
-        const userEmail = user?.email || '';
+        const userEmail = user?.email || ''; // Email from Firebase Auth (Google login)
 
         // Format payload to match your Apps Script expectations
         const payload = {
           customer: { 
-            email: userEmail, 
-            name: name, 
-            grade: gradeNum 
+            email: userEmail,      // From Firebase Auth (Google account)
+            name: name,           // From checkout form
+            grade: gradeNum       // From checkout form
           },
           items: cart.map(item => ({ 
             name: item.name, 
@@ -232,8 +236,14 @@
         };
 
         console.log('Formatted payload for Google Sheets:', payload);
+        console.log('Data breakdown:', {
+          'Email (from Google login)': userEmail,
+          'Student name (from form)': name,
+          'Grade (from form)': gradeNum,
+          'Items count': cart.length
+        });
 
-        // Submit to Google Sheets via hidden form - this completely bypasses CORS
+        // Submit to Google Sheets via form submission
         submitToGoogleSheets(payload);
         
         // --- End Sheets integration ---
