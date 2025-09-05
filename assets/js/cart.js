@@ -136,7 +136,7 @@
         const user = STORE.user;
         const email = user?.email || '';
         
-        // Send to Google Sheets
+        // Send to Google Sheets - Format to match your Apps Script
         const payload = {
           email: email,
           name: name,
@@ -151,7 +151,7 @@
         };
         
         try {
-          // Replace YOUR_SCRIPT_ID with your actual Google Apps Script deployment ID
+          // Your Google Apps Script URL
           const res = await fetch('https://script.google.com/macros/s/AKfycby-y5gRR2aL-Rk1PFe321mDNcj9CI_PF4vzZKBxfTlvH_dVXHFAR75CUpUZkw3kNHyU3A/exec', {
             method: 'POST',
             mode: 'no-cors', // Important for CORS with Google Apps Script
