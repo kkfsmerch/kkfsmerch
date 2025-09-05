@@ -192,8 +192,8 @@
         const sheetsSuccess = await sendToGoogleSheets(orderData);
         
         if (!sheetsSuccess) {
-          // Even if Google Sheets fails, we can still complete the checkout
-          console.warn('Failed to send to Google Sheets, but continuing with checkout');
+          alert('Order failed to process. Please try again.');
+          return;
         }
 
         // Now complete the checkout (this clears the cart)
