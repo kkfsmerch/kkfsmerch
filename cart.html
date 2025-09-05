@@ -32,14 +32,30 @@
           <div class="d-flex justify-content-between"><span>Total</span><span id="cartSubtotal">₩0</span></div>
           <p class="text-secondary small mt-2">Cost calculated at checkout.</p>
           <button id="checkoutBtn" class="btn btn-primary w-100">Checkout</button>
-
-          <div id="processingMsg" style="display:none; color:orange; margin-top:10px;">
-            This may take a few seconds, please stay in CART, do not close the website.
-          </div>
         </div>
       </div>
     </div>
   </div>
+  
+  <div id="processingMsg" style="
+      display:none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #ffcc00;
+      color: #000;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+      padding: 15px 0;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  ">
+    This may take a few seconds, please stay in CART, do not close the website.
+  </div>
+
+  
 </main>
 
   
