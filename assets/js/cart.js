@@ -3,6 +3,7 @@
   const list = $('#cartItems');
   const subtotalEl = $('#cartSubtotal');
   const checkoutBtn = $('#checkoutBtn');
+  const msg = document.getElementById('processingMsg');
   
   // Replace this with your actual Google Apps Script web app URL
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx45JiKg0xbacVfBL0Uw0NI5BWTR3Xzm9HDNk6T16ke8-gx6Jhse5JF3oCJqFMejpLEzg/exec';
@@ -152,6 +153,7 @@
       const placeOrderBtn = document.getElementById('placeOrderBtn');
       placeOrderBtn.disabled = true;
       placeOrderBtn.textContent = 'Processing...';
+      msg.style.display = 'block';
 
       try {
         // Get current cart before checkout
@@ -199,6 +201,8 @@
         // Now complete the checkout (this clears the cart)
         const customerInfo = { name, grade: gradeNum };
         const order = await STORE.checkout(customerInfo);
+        
+        msg.style.display = 'none';
         
         if (order) {
           cm.hide();
