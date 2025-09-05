@@ -1,5 +1,5 @@
-// ui.js - UI utilities for product display and interaction
-const UI = (function(){
+// ui.js - UI utilities for product display and interaction (NON-MODULE VERSION)
+(function(){
   
   // Format product card HTML
   function productCard(product){
@@ -161,13 +161,10 @@ const UI = (function(){
     });
   }
 
-  // Public interface
-  return {
+  // Make UI globally available
+  window.UI = {
     productCard,
     wireGridClicks,
     showToast
   };
 })();
-
-// Make UI globally available
-window.UI = UI;
