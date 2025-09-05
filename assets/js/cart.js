@@ -144,7 +144,7 @@
         if (order) {
           cm.hide();
           document.getElementById('success').innerHTML = `
-            <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
+            <div class="alert alert-success mt-3">✅ Order confirmed.</div>`;
           
           // TODO: Google Sheets integration will go here
           // This is where you'll add your spreadsheet code to send order data
