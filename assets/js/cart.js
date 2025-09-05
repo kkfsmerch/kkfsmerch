@@ -4,6 +4,8 @@
   const subtotalEl = $('#cartSubtotal');
   const checkoutBtn = $('#checkoutBtn');
   
+  // Replace this with your actual Google Apps Script web app URL
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
   async function render(){
     // Wait for STORE to be ready
@@ -41,10 +43,6 @@
         </div>
       </div>`).join('');
 
-
-
-
-
     // Add event listeners with debouncing for quantity updates
     list.querySelectorAll('.qty-input').forEach(inp=>{
       let timeout;
@@ -64,9 +62,29 @@
       });
     });
 
-
-
     subtotalEl.textContent = STORE.fmt(STORE.total());
+  }
+
+  // Function to send order data to Google Sheets
+  async function sendToGoogleSheets(orderData) {
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+        mode: 'no-cors' // Required for Google Apps Script
+      });
+      
+      // Note: With 'no-cors' mode, we can't read the response
+      // But the request will still be sent to Google Apps Script
+      console.log('Order data sent to Google Sheets');
+      return true;
+    } catch (error) {
+      console.error('Error sending to Google Sheets:', error);
+      return false;
+    }
   }
 
   checkoutBtn?.addEventListener('click', ()=>{
@@ -101,8 +119,6 @@
                     onkeypress="return /[0-9]/.test(event.key)"
                   >
               </div>
-
-
             </div>
             <div class="modal-footer">
               <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -138,21 +154,64 @@
       placeOrderBtn.textContent = 'Processing...';
 
       try {
+        // Get current cart before checkout
+        const currentCart = await STORE.getCart();
+        
+        if (currentCart.length === 0) {
+          alert('Your cart is empty.');
+          return;
+        }
+
+        // Get current user
+        const currentUser = STORE.user;
+        if (!currentUser) {
+          alert('User not authenticated.');
+          return;
+        }
+
+        // Generate order ID
+        const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const orderTotal = STORE.total();
+
+        // Prepare data for Google Sheets
+        const orderData = {
+          orderId: orderId,
+          email: currentUser.email,
+          customerName: name,
+          customerGrade: gradeNum,
+          cart: currentCart.map(item => ({
+            name: item.name,
+            size: item.size,
+            qty: item.qty,
+            price: item.price
+          })),
+          orderTotal: orderTotal,
+          timestamp: new Date().toISOString()
+        };
+
+        console.log('Sending order data to Google Sheets:', orderData);
+
+        // Send to Google Sheets FIRST
+        const sheetsSuccess = await sendToGoogleSheets(orderData);
+        
+        if (!sheetsSuccess) {
+          // Even if Google Sheets fails, we can still complete the checkout
+          console.warn('Failed to send to Google Sheets, but continuing with checkout');
+        }
+
+        // Now complete the checkout (this clears the cart)
         const customerInfo = { name, grade: gradeNum };
         const order = await STORE.checkout(customerInfo);
         
         if (order) {
           cm.hide();
           document.getElementById('success').innerHTML = `
-            <div class="alert alert-success mt-3">✅ Order confirmed.</div>`;
-          
-          // TODO: Google Sheets integration will go here
-          // This is where you'll add your spreadsheet code to send order data
-
-          
-
-
-
+            <div class="alert alert-success mt-3">
+              ✅ Order confirmed! 
+              <br><strong>Order ID:</strong> ${orderId}
+              <br>Check your email for details.
+              ${!sheetsSuccess ? '<br><small class="text-warning">Note: There was an issue saving to our records, but your order is confirmed.</small>' : ''}
+            </div>`;
           
           render(); // Re-render to show empty cart
           window.scrollTo({top:0, behavior:'smooth'});
