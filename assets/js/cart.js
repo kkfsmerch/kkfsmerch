@@ -4,14 +4,14 @@
   const list = $('#cartItems');
   const subtotalEl = $('#cartSubtotal');
   const checkoutBtn = $('#checkoutBtn');
-
+  
   async function render(){
     // Wait for STORE to be ready
     if (typeof STORE === 'undefined' || !STORE.ready) {
       setTimeout(render, 100);
       return;
     }
-
+    
     const cart = await STORE.getCart();
     if(cart.length === 0){
       list.innerHTML = '<div class="text-center text-secondary py-5">Your cart is empty.</div>';
@@ -40,7 +40,7 @@
           </div>
         </div>
       </div>`).join('');
-
+    
     // Add event listeners for quantity updates
     list.querySelectorAll('.qty-input').forEach(inp=>{
       let timeout;
@@ -52,17 +52,17 @@
         }, 500);
       });
     });
-
+    
     list.querySelectorAll('button[data-del]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{ 
         await STORE.removeItem(btn.dataset.del); 
         render(); 
       });
     });
-
+    
     subtotalEl.textContent = STORE.fmt(STORE.total());
   }
-
+  
   checkoutBtn?.addEventListener('click', ()=>{
     // Show checkout modal
     if(!document.getElementById('checkoutModal')){
@@ -104,34 +104,34 @@
         </div>
       </div>`);
     }
-
+    
     const cm = new bootstrap.Modal('#checkoutModal');
     cm.show();
-
+    
     document.getElementById('placeOrderBtn').onclick = async ()=>{
       const name = document.getElementById('cName').value.trim();
       const grade = document.getElementById('studentGrade').value.trim();
-
+      
       if(!name || !grade){
         alert('Please complete the form.');
         return;
       }
-
+      
       const gradeNum = parseInt(grade);
       if(gradeNum < 1 || gradeNum > 12){
         alert('Please enter a valid grade (1-12).');
         return;
       }
-
+      
       const placeOrderBtn = document.getElementById('placeOrderBtn');
       placeOrderBtn.disabled = true;
       placeOrderBtn.textContent = 'Processing...';
-
+      
       try {
         // Get cart data BEFORE checkout (since checkout clears the cart)
         const cart = await STORE.getCart();
         console.log('Cart before checkout:', cart);
-
+        
         const customerInfo = { name, grade: gradeNum };
         const checkoutResult = await STORE.checkout(customerInfo);
         
@@ -141,24 +141,23 @@
         if (!checkoutResult) {
           throw new Error('Checkout returned false/null');
         }
-
+        
         // Close modal and show success
         cm.hide();
         document.getElementById('success').innerHTML = `
           <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
-
+        
         // --- Google Sheets integration ---
         const user = STORE.user;
         const email = user?.email || '';
-
         const payload = {
           customer: { email, name, grade: gradeNum },
           items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price }))
         };
-
+        
         try {
-          // Replace with your actual Google Sheets URL
-          const res = await fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+          // Your actual Google Apps Script URL
+          const res = await fetch('https://script.google.com/macros/s/AKfycby-y5gRR2aL-Rk1PFe321mDNcj9CI_PF4vzZKBxfTlvH_dVXHFAR75CUpUZkw3kNHyU3A/exec', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -170,10 +169,10 @@
           // Don't show error to user since main checkout succeeded
         }
         // --- End Sheets integration ---
-
+        
         render(); // Clear cart display
         window.scrollTo({top:0, behavior:'smooth'});
-
+        
       } catch(error){
         console.error('Checkout error:', error);
         
@@ -189,10 +188,10 @@
       }
     };
   });
-
+  
   // Listen for cart updates
   window.addEventListener('cartUpdated', render);
-
+  
   // Initial render
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', render);
