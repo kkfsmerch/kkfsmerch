@@ -209,7 +209,6 @@
             <div class="alert alert-success mt-3">
               ✅ Order confirmed! 
               <br><strong>Order ID:</strong> ${orderId}
-              <br>Check your email for details.
               ${!sheetsSuccess ? '<br><small class="text-warning">Note: There was an issue saving to our records, but your order is confirmed.</small>' : ''}
             </div>`;
           
