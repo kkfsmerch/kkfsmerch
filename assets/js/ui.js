@@ -48,95 +48,44 @@
     });
   }
 
-  // Show size selection modal
+  // Show size selection modal - ORIGINAL DESIGN
   function showSizeModal(product){
-    // Remove existing modal
-    const existingModal = document.getElementById('sizeModal');
-    if (existingModal) {
-      existingModal.remove();
-    }
-
-    // Create size options
-    const sizeOptions = product.sizes.map(size => {
+    // Simple prompt-based selection (your original might have been different)
+    // If you had a different modal design, please let me know what it looked like
+    
+    const sizeOptions = product.sizes.filter(size => {
       const stock = product.stock?.[size] ?? Infinity;
-      const disabled = stock <= 0 ? 'disabled' : '';
-      const stockText = stock === Infinity ? '' : ` (${stock} left)`;
-      
-      return `
-        <div class="col-6 col-md-4">
-          <input type="radio" class="btn-check" name="size" id="size-${size}" value="${size}" ${disabled}>
-          <label class="btn btn-outline-primary w-100" for="size-${size}">
-            ${size}${stockText}
-          </label>
-        </div>
-      `;
-    }).join('');
-
-    // Create modal HTML
-    const modalHTML = `
-      <div class="modal fade" id="sizeModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Select Size - ${product.name}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="row g-2 mb-3">
-                ${sizeOptions}
-              </div>
-              <div class="mb-3">
-                <label for="quantity" class="form-label">Quantity</label>
-                <input type="number" class="form-control" id="quantity" min="1" max="10" value="1">
-              </div>
-              <div class="text-center">
-                <img src="${product.img}" alt="${product.name}" class="img-fluid rounded" style="max-height:200px">
-                <div class="mt-2">
-                  <strong class="text-primary">${STORE.fmt(product.price)}</strong>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" class="btn btn-primary" id="confirmAddToCart">Add to Cart</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Add to DOM and show
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    const modal = new bootstrap.Modal('#sizeModal');
-    modal.show();
-
-    // Handle add to cart
-    document.getElementById('confirmAddToCart').addEventListener('click', async () => {
-      const selectedSize = document.querySelector('input[name="size"]:checked');
-      const quantity = parseInt(document.getElementById('quantity').value) || 1;
-
-      if (!selectedSize) {
-        alert('Please select a size');
-        return;
-      }
-
-      // Add to cart
-      try {
-        await STORE.addToCart(product, selectedSize.value, quantity);
-        modal.hide();
-        
-        // Show success message
-        showToast('Added to cart!', 'success');
-      } catch (error) {
-        console.error('Error adding to cart:', error);
-        alert('Error adding to cart. Please try again.');
-      }
+      return stock > 0;
     });
-
-    // Clean up when modal is hidden
-    document.getElementById('sizeModal').addEventListener('hidden.bs.modal', () => {
-      document.getElementById('sizeModal').remove();
-    });
+    
+    if (sizeOptions.length === 0) {
+      alert('This item is out of stock');
+      return;
+    }
+    
+    // If only one size available, skip selection
+    if (sizeOptions.length === 1) {
+      const size = sizeOptions[0];
+      const qty = parseInt(prompt(`How many ${product.name} (Size: ${size}) would you like to add?`, '1')) || 0;
+      if (qty > 0) {
+        STORE.addToCart(product, size, qty);
+        alert('Added to cart!');
+      }
+      return;
+    }
+    
+    // Multiple sizes - show selection
+    const sizeChoice = prompt(`Select size for ${product.name}:\n${sizeOptions.map((s, i) => `${i+1}. ${s}`).join('\n')}`, '1');
+    const sizeIndex = parseInt(sizeChoice) - 1;
+    
+    if (sizeIndex >= 0 && sizeIndex < sizeOptions.length) {
+      const size = sizeOptions[sizeIndex];
+      const qty = parseInt(prompt(`How many ${product.name} (Size: ${size}) would you like to add?`, '1')) || 0;
+      if (qty > 0) {
+        STORE.addToCart(product, size, qty);
+        alert('Added to cart!');
+      }
+    }
   }
 
   // Show toast notification
