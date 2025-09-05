@@ -1,286 +1,173 @@
-// cart.js - renders cart page and Firebase checkout with Google Sheets integration
-(function(){
-  const $ = s => document.querySelector(s);
-  const list = $('#cartItems');
-  const subtotalEl = $('#cartSubtotal');
-  const checkoutBtn = $('#checkoutBtn');
-
-  async function render(){
-    // Wait for STORE to be ready
-    if (typeof STORE === 'undefined' || !STORE.ready) {
-      setTimeout(render, 100);
-      return;
-    }
-
-    const cart = await STORE.getCart();
-    if(cart.length === 0){
-      list.innerHTML = '<div class="text-center text-secondary py-5">Your cart is empty.</div>';
-      subtotalEl.textContent = STORE.fmt(0);
-      checkoutBtn.disabled = true;
-      return;
-    }
+// ui.js - UI utilities for product display and interaction
+const UI = (function(){
+  
+  // Format product card HTML
+  function productCard(product){
+    const inStock = Object.values(product.stock || {}).some(s => s > 0) || product.stock === undefined;
+    const stockText = inStock ? '' : '<small class="text-danger">Out of Stock</small>';
+    const limitedBadge = product.limited ? '<span class="position-absolute top-0 start-0 badge bg-danger m-2">Limited</span>' : '';
     
-    checkoutBtn.disabled = false;
-    list.innerHTML = cart.map(i=>`
-      <div class="card">
-        <div class="card-body d-flex align-items-center gap-3">
-          <img src="${i.img}" alt="${i.name}" style="width:64px;height:64px;object-fit:cover" class="rounded">
-          <div class="flex-grow-1">
-            <div class="d-flex justify-content-between">
-              <div>
-                <div class="fw-semibold">${i.name}</div>
-                <small class="text-secondary">Size: ${i.size}</small>
-              </div>
-              <div class="text-nowrap">${STORE.fmt(i.price)}</div>
+    return `
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="card h-100 shadow-sm product-card position-relative" data-product-id="${product.id}">
+          ${limitedBadge}
+          <img src="${product.img}" class="card-img-top" alt="${product.name}" style="height:200px;object-fit:cover">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title fw-semibold">${product.name}</h5>
+            <p class="card-text text-muted small flex-grow-1">${product.desc}</p>
+            <div class="d-flex justify-content-between align-items-center mt-auto">
+              <span class="fw-bold text-primary">${STORE.fmt(product.price)}</span>
+              <button class="btn btn-sm btn-outline-primary add-to-cart-btn" ${!inStock ? 'disabled' : ''}>
+                ${inStock ? 'Add to Cart' : 'Out of Stock'}
+              </button>
             </div>
-            <div class="d-flex align-items-center mt-2 gap-2">
-              <input type="number" min="1" value="${i.qty}" data-key="${i.key}" class="form-control form-control-sm qty-input" style="width:90px">
-              <button class="btn btn-outline-danger btn-sm" data-del="${i.key}">Remove</button>
-            </div>
+            ${stockText}
           </div>
         </div>
-      </div>`).join('');
-
-    // Add event listeners for quantity updates
-    list.querySelectorAll('.qty-input').forEach(inp=>{
-      let timeout;
-      inp.addEventListener('input', ()=>{
-        clearTimeout(timeout);
-        timeout = setTimeout(async () => {
-          await STORE.updateQty(inp.dataset.key, Math.max(1, Number(inp.value||1)));
-          render();
-        }, 500);
-      });
-    });
-
-    list.querySelectorAll('button[data-del]').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{ 
-        await STORE.removeItem(btn.dataset.del); 
-        render(); 
-      });
-    });
-
-    subtotalEl.textContent = STORE.fmt(STORE.total());
+      </div>
+    `;
   }
 
-  // Function to submit data to Google Sheets via form submission
-  function submitToGoogleSheets(payload) {
-    try {
-      console.log('Submitting payload to Google Sheets:', payload);
+  // Wire up click events for product grid
+  function wireGridClicks(gridElement){
+    gridElement.addEventListener('click', async (e) => {
+      const addBtn = e.target.closest('.add-to-cart-btn');
+      if (!addBtn || addBtn.disabled) return;
+
+      const card = addBtn.closest('.product-card');
+      const productId = card.dataset.productId;
+      const product = STORE.getProductById(productId);
       
-      // Validate payload structure
-      if (!payload.customer || !payload.items || !Array.isArray(payload.items)) {
-        console.error('Invalid payload structure:', payload);
+      if (!product) {
+        console.error('Product not found:', productId);
         return;
       }
 
-      // Create a hidden form
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = 'https://script.google.com/macros/s/AKfycby8RrHAj3vDBGF1trxSf-lsxu-ft8DbhO3Emt7jxCHWOCEbs9c0T7TsV1WZeX7su5OqfA/exec'; // Replace with the URL that shows the working message
-      form.target = 'hidden_iframe';
-      form.style.display = 'none';
-
-      // Add data as form parameter - MUST match Apps Script e.parameter.data
-      const dataField = document.createElement('input');
-      dataField.type = 'hidden';
-      dataField.name = 'data';  // Fixed: This must be 'data' to match Apps Script
-      dataField.value = JSON.stringify(payload);
-      form.appendChild(dataField);
-
-      // Create hidden iframe to receive response
-      let iframe = document.getElementById('hidden_iframe');
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'hidden_iframe';
-        iframe.name = 'hidden_iframe';
-        iframe.style.display = 'none';
-        
-        // Add load event listener for debugging
-        iframe.onload = function() {
-          console.log('Google Sheets submission completed');
-        };
-        
-        iframe.onerror = function(error) {
-          console.error('Google Sheets submission error:', error);
-        };
-        
-        document.body.appendChild(iframe);
-      }
-
-      // Submit the form
-      document.body.appendChild(form);
-      form.submit();
-      
-      // Clean up the form after submission
-      setTimeout(() => {
-        if (document.body.contains(form)) {
-          document.body.removeChild(form);
-        }
-      }, 3000);
-      
-      console.log('Order data submitted to Google Apps Script');
-      
-    } catch (err) {
-      console.error('Google Sheets submission failed:', err);
-      // Don't throw error - this shouldn't prevent checkout completion
-    }
+      // Show size selection modal
+      showSizeModal(product);
+    });
   }
 
-  checkoutBtn?.addEventListener('click', ()=>{
-    // Show checkout modal
-    if(!document.getElementById('checkoutModal')){
-      document.body.insertAdjacentHTML('beforeend', `
-      <div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
+  // Show size selection modal
+  function showSizeModal(product){
+    // Remove existing modal
+    const existingModal = document.getElementById('sizeModal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+
+    // Create size options
+    const sizeOptions = product.sizes.map(size => {
+      const stock = product.stock?.[size] ?? Infinity;
+      const disabled = stock <= 0 ? 'disabled' : '';
+      const stockText = stock === Infinity ? '' : ` (${stock} left)`;
+      
+      return `
+        <div class="col-6 col-md-4">
+          <input type="radio" class="btn-check" name="size" id="size-${size}" value="${size}" ${disabled}>
+          <label class="btn btn-outline-primary w-100" for="size-${size}">
+            ${size}${stockText}
+          </label>
+        </div>
+      `;
+    }).join('');
+
+    // Create modal HTML
+    const modalHTML = `
+      <div class="modal fade" id="sizeModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Checkout</h5>
-              <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              <h5 class="modal-title">Select Size - ${product.name}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <div class="mb-3">
-                <label for="cName" class="form-label">Student's Preferred Name</label>
-                <input type="text" id="cName" class="form-control" placeholder="Preferred full name" required>
+              <div class="row g-2 mb-3">
+                ${sizeOptions}
               </div>
               <div class="mb-3">
-                <label for="studentGrade" class="form-label">Grade</label>
-                <input
-                  type="number"
-                  id="studentGrade"
-                  class="form-control"
-                  placeholder="Grade" 
-                  min="1"
-                  max="12"
-                  required
-                  onfocus="if(this.value==1)this.value='';"
-                  oninput="if(this.value>12)this.value=12"
-                  onblur="if(!this.value || this.value<1)this.value=1"
-                  onkeypress="return /[1-9]/.test(event.key)"
-                >
+                <label for="quantity" class="form-label">Quantity</label>
+                <input type="number" class="form-control" id="quantity" min="1" max="10" value="1">
+              </div>
+              <div class="text-center">
+                <img src="${product.img}" alt="${product.name}" class="img-fluid rounded" style="max-height:200px">
+                <div class="mt-2">
+                  <strong class="text-primary">${STORE.fmt(product.price)}</strong>
+                </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button id="placeOrderBtn" class="btn btn-primary">Place order</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" id="confirmAddToCart">Add to Cart</button>
             </div>
           </div>
         </div>
-      </div>`);
-    }
+      </div>
+    `;
 
-    const cm = new bootstrap.Modal('#checkoutModal');
-    cm.show();
+    // Add to DOM and show
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    const modal = new bootstrap.Modal('#sizeModal');
+    modal.show();
 
-    document.getElementById('placeOrderBtn').onclick = async ()=>{
-      const name = document.getElementById('cName').value.trim();
-      const grade = document.getElementById('studentGrade').value.trim();
+    // Handle add to cart
+    document.getElementById('confirmAddToCart').addEventListener('click', async () => {
+      const selectedSize = document.querySelector('input[name="size"]:checked');
+      const quantity = parseInt(document.getElementById('quantity').value) || 1;
 
-      if(!name || !grade){
-        alert('Please complete the form.');
+      if (!selectedSize) {
+        alert('Please select a size');
         return;
       }
 
-      const gradeNum = parseInt(grade);
-      if(gradeNum < 1 || gradeNum > 12){
-        alert('Please enter a valid grade (1-12).');
-        return;
-      }
-
-      const placeOrderBtn = document.getElementById('placeOrderBtn');
-      placeOrderBtn.disabled = true;
-      placeOrderBtn.textContent = 'Processing...';
-
+      // Add to cart
       try {
-        // Get cart data BEFORE checkout (since checkout clears the cart)
-        const cart = await STORE.getCart();
-        console.log('Cart before checkout:', cart);
-
-        if (cart.length === 0) {
-          throw new Error('Cart is empty');
-        }
-
-        const customerInfo = { name, grade: gradeNum };
-        const checkoutResult = await STORE.checkout(customerInfo);
-        
-        console.log('Checkout result:', checkoutResult);
-        
-        // Check if checkout was successful
-        if (!checkoutResult) {
-          throw new Error('Checkout returned false/null');
-        }
-
-        // Close modal first
-        cm.hide();
+        await STORE.addToCart(product, selectedSize.value, quantity);
+        modal.hide();
         
         // Show success message
-        document.getElementById('success').innerHTML = `
-          <div class="alert alert-success mt-3">✅ Order confirmed! Your order has been submitted successfully.</div>`;
-
-        // --- Google Sheets integration ---
-        const user = STORE.user;
-        const userEmail = user?.email || ''; // Email from Firebase Auth (Google login)
-
-        // Format payload to match your Apps Script expectations
-        const payload = {
-          customer: { 
-            email: userEmail,      // From Firebase Auth (Google account)
-            name: name,           // From checkout form
-            grade: gradeNum       // From checkout form
-          },
-          items: cart.map(item => ({ 
-            name: item.name, 
-            qty: item.qty, 
-            price: item.price 
-          }))
-        };
-
-        console.log('Formatted payload for Google Sheets:', payload);
-        console.log('Data breakdown:', {
-          'Email (from Google login)': userEmail,
-          'Student name (from form)': name,
-          'Grade (from form)': gradeNum,
-          'Items count': cart.length
-        });
-
-        // Submit to Google Sheets via form submission
-        submitToGoogleSheets(payload);
-        
-        // --- End Sheets integration ---
-
-        render(); // Clear cart display
-        window.scrollTo({top:0, behavior:'smooth'});
-
-      } catch(error){
-        console.error('Checkout error:', error);
-        
-        // Close modal first
-        cm.hide();
-        
-        // Show error message
-        let errorMessage = 'Checkout failed. Please try again.';
-        if (error.message === 'Cart is empty') {
-          errorMessage = 'Your cart is empty. Please add items before checkout.';
-        } else if (error.message.includes('authentication')) {
-          errorMessage = 'Authentication error. Please log in again.';
-        }
-        
-        alert(errorMessage + ' Error: ' + error.message);
-        
-      } finally {
-        placeOrderBtn.disabled = false;
-        placeOrderBtn.textContent = 'Place order';
+        showToast('Added to cart!', 'success');
+      } catch (error) {
+        console.error('Error adding to cart:', error);
+        alert('Error adding to cart. Please try again.');
       }
-    };
-  });
+    });
 
-  // Listen for cart updates
-  window.addEventListener('cartUpdated', render);
-
-  // Initial render
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', render);
-  } else {
-    render();
+    // Clean up when modal is hidden
+    document.getElementById('sizeModal').addEventListener('hidden.bs.modal', () => {
+      document.getElementById('sizeModal').remove();
+    });
   }
+
+  // Show toast notification
+  function showToast(message, type = 'info'){
+    const toastHTML = `
+      <div class="toast align-items-center text-bg-${type} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+        <div class="d-flex">
+          <div class="toast-body">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', toastHTML);
+    const toastElement = document.querySelector('.toast:last-child');
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    // Remove after hiding
+    toastElement.addEventListener('hidden.bs.toast', () => {
+      toastElement.remove();
+    });
+  }
+
+  // Public interface
+  return {
+    productCard,
+    wireGridClicks,
+    showToast
+  };
 })();
+
+// Make UI globally available
+window.UI = UI;
