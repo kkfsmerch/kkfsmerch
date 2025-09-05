@@ -5,7 +5,7 @@
   const checkoutBtn = $('#checkoutBtn');
   
   // Replace this with your actual Google Apps Script web app URL
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqRn7zYm_w9i876BSE_lTnjGm4mfktPZiuCTliTsPNJkOSREGryp38SewrlGjhXjxcaw/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
   async function render(){
     // Wait for STORE to be ready
@@ -207,8 +207,7 @@
           cm.hide();
           document.getElementById('success').innerHTML = `
             <div class="alert alert-success mt-3">
-              ✅ Order confirmed! 
-              <br><strong>Order ID:</strong> ${orderId}
+              ✅ Order confirmed! Check your email for details.
               ${!sheetsSuccess ? '<br><small class="text-warning">Note: There was an issue saving to our records, but your order is confirmed.</small>' : ''}
             </div>`;
           
