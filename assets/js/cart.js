@@ -1,4 +1,4 @@
-// cart.js - renders cart page and Firebase checkout with Google Sheets integration
+// cart.js - renders cart page and Firebase checkout
 (function(){
   const $ = s => document.querySelector(s);
   const list = $('#cartItems');
@@ -61,70 +61,6 @@
     });
 
     subtotalEl.textContent = STORE.fmt(STORE.total());
-  }
-
-  // Function to submit data to Google Sheets via form submission
-  function submitToGoogleSheets(payload) {
-    try {
-      console.log('Submitting payload to Google Sheets:', payload);
-      
-      // Validate payload structure
-      if (!payload.customer || !payload.items || !Array.isArray(payload.items)) {
-        console.error('Invalid payload structure:', payload);
-        return;
-      }
-
-      // Create a hidden form
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = 'https://script.google.com/macros/s/AKfycby8RrHAj3vDBGF1trxSf-lsxu-ft8DbhO3Emt7jxCHWOCEbs9c0T7TsV1WZeX7su5OqfA/exec'; // Replace with the URL that shows the working message
-      form.target = 'hidden_iframe';
-      form.style.display = 'none';
-
-      // Add data as form parameter - MUST match Apps Script e.parameter.data
-      const dataField = document.createElement('input');
-      dataField.type = 'hidden';
-      dataField.name = 'data';  // Fixed: This must be 'data' to match Apps Script
-      dataField.value = JSON.stringify(payload);
-      form.appendChild(dataField);
-
-      // Create hidden iframe to receive response
-      let iframe = document.getElementById('hidden_iframe');
-      if (!iframe) {
-        iframe = document.createElement('iframe');
-        iframe.id = 'hidden_iframe';
-        iframe.name = 'hidden_iframe';
-        iframe.style.display = 'none';
-        
-        // Add load event listener for debugging
-        iframe.onload = function() {
-          console.log('Google Sheets submission completed');
-        };
-        
-        iframe.onerror = function(error) {
-          console.error('Google Sheets submission error:', error);
-        };
-        
-        document.body.appendChild(iframe);
-      }
-
-      // Submit the form
-      document.body.appendChild(form);
-      form.submit();
-      
-      // Clean up the form after submission
-      setTimeout(() => {
-        if (document.body.contains(form)) {
-          document.body.removeChild(form);
-        }
-      }, 3000);
-      
-      console.log('Order data submitted to Google Apps Script');
-      
-    } catch (err) {
-      console.error('Google Sheets submission failed:', err);
-      // Don't throw error - this shouldn't prevent checkout completion
-    }
   }
 
   checkoutBtn?.addEventListener('click', ()=>{
@@ -193,29 +129,11 @@
 
       try {
         // Get cart data BEFORE checkout (since checkout clears the cart)
-        let cart = await STORE.getCart();
+        const cart = await STORE.getCart();
         console.log('Cart before checkout:', cart);
 
-        // If Firebase fails, use mock data for testing Google Sheets
-        if (!cart || cart.length === 0) {
-          console.warn('No cart data from Firebase - using mock data for testing');
-          cart = [
-            {name: "Blue Hoodie", qty: 1, price: 40000, size: "M"},
-            {name: "Test T-Shirt", qty: 2, price: 25000, size: "L"}
-          ];
-        }
-
         const customerInfo = { name, grade: gradeNum };
-        
-        // Try Firebase checkout, but don't fail if it doesn't work
-        let checkoutResult;
-        try {
-          checkoutResult = await STORE.checkout(customerInfo);
-        } catch (firebaseError) {
-          console.error('Firebase checkout failed:', firebaseError);
-          console.log('Continuing with Google Sheets submission anyway...');
-          checkoutResult = { mock: true }; // Mock success for testing
-        }
+        const checkoutResult = await STORE.checkout(customerInfo);
         
         console.log('Checkout result:', checkoutResult);
         
@@ -224,42 +142,33 @@
           throw new Error('Checkout returned false/null');
         }
 
-        // Close modal first
+        // Close modal and show success
         cm.hide();
-        
-        // Show success message
         document.getElementById('success').innerHTML = `
-          <div class="alert alert-success mt-3">✅ Order confirmed! Your order has been submitted successfully.</div>`;
+          <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
 
         // --- Google Sheets integration ---
         const user = STORE.user;
-        const userEmail = user?.email || ''; // Email from Firebase Auth (Google login)
+        const email = user?.email || '';
 
-        // Format payload to match your Apps Script expectations
         const payload = {
-          customer: { 
-            email: userEmail,      // From Firebase Auth (Google account)
-            name: name,           // From checkout form
-            grade: gradeNum       // From checkout form
-          },
-          items: cart.map(item => ({ 
-            name: item.name, 
-            qty: item.qty, 
-            price: item.price 
-          }))
+          customer: { email, name, grade: gradeNum },
+          items: cart.map(i => ({ name: i.name, qty: i.qty, price: i.price }))
         };
 
-        console.log('Formatted payload for Google Sheets:', payload);
-        console.log('Data breakdown:', {
-          'Email (from Google login)': userEmail,
-          'Student name (from form)': name,
-          'Grade (from form)': gradeNum,
-          'Items count': cart.length
-        });
-
-        // Submit to Google Sheets via form submission
-        submitToGoogleSheets(payload);
-        
+        try {
+          // Replace with your actual Google Sheets URL
+          const res = await fetch('https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          console.log('Sheets response:', data);
+        } catch(err){
+          console.error('Failed to log order to Google Sheets', err);
+          // Don't show error to user since main checkout succeeded
+        }
         // --- End Sheets integration ---
 
         render(); // Clear cart display
@@ -272,14 +181,7 @@
         cm.hide();
         
         // Show error message
-        let errorMessage = 'Checkout failed. Please try again.';
-        if (error.message === 'Cart is empty') {
-          errorMessage = 'Your cart is empty. Please add items before checkout.';
-        } else if (error.message.includes('authentication')) {
-          errorMessage = 'Authentication error. Please log in again.';
-        }
-        
-        alert(errorMessage + ' Error: ' + error.message);
+        alert('Checkout failed. Please try again. Error: ' + error.message);
         
       } finally {
         placeOrderBtn.disabled = false;
