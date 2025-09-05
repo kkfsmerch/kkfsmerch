@@ -1,119 +1,181 @@
-// ui.js - UI utilities for product display and interaction (NON-MODULE VERSION)
 (function(){
+  const $ = s=>document.querySelector(s);
+  const list = $('#cartItems');
+  const subtotalEl = $('#cartSubtotal');
+  const checkoutBtn = $('#checkoutBtn');
   
-  // Format product card HTML
-  function productCard(product){
-    const inStock = Object.values(product.stock || {}).some(s => s > 0) || product.stock === undefined;
-    const stockText = inStock ? '' : '<small class="text-danger">Out of Stock</small>';
-    const limitedBadge = product.limited ? '<span class="position-absolute top-0 start-0 badge bg-danger m-2">Limited</span>' : '';
+
+  async function render(){
+    // Wait for STORE to be ready
+    if (typeof STORE === 'undefined' || !STORE.ready) {
+      setTimeout(render, 100);
+      return;
+    }
+
+    const cart = await STORE.getCart();
+    if(cart.length === 0){
+      list.innerHTML = '<div class="text-center text-secondary py-5">Your cart is empty.</div>';
+      subtotalEl.textContent = STORE.fmt(0);
+      checkoutBtn.disabled = true;
+      return;
+    }
     
-    return `
-      <div class="col-sm-6 col-md-4 col-lg-3">
-        <div class="card h-100 shadow-sm product-card position-relative" data-product-id="${product.id}">
-          ${limitedBadge}
-          <img src="${product.img}" class="card-img-top" alt="${product.name}" style="height:200px;object-fit:cover">
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title fw-semibold">${product.name}</h5>
-            <p class="card-text text-muted small flex-grow-1">${product.desc}</p>
-            <div class="d-flex justify-content-between align-items-center mt-auto">
-              <span class="fw-bold text-primary">${STORE.fmt(product.price)}</span>
-              <button class="btn btn-sm btn-outline-primary add-to-cart-btn" ${!inStock ? 'disabled' : ''}>
-                ${inStock ? 'Add to Cart' : 'Out of Stock'}
-              </button>
+    checkoutBtn.disabled = false;
+    list.innerHTML = cart.map(i=>`
+      <div class="card">
+        <div class="card-body d-flex align-items-center gap-3">
+          <img src="${i.img}" alt="${i.name}" style="width:64px;height:64px;object-fit:cover" class="rounded">
+          <div class="flex-grow-1">
+            <div class="d-flex justify-content-between">
+              <div>
+                <div class="fw-semibold">${i.name}</div>
+                <small class="text-secondary">Size: ${i.size}</small>
+              </div>
+              <div class="text-nowrap">${STORE.fmt(i.price)}</div>
             </div>
-            ${stockText}
+            <div class="d-flex align-items-center mt-2 gap-2">
+              <input type="number" min="1" value="${i.qty}" data-key="${i.key}" class="form-control form-control-sm qty-input" style="width:90px">
+              <button class="btn btn-outline-danger btn-sm" data-del="${i.key}">Remove</button>
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      </div>`).join('');
+
+
+
+
+
+    // Add event listeners with debouncing for quantity updates
+    list.querySelectorAll('.qty-input').forEach(inp=>{
+      let timeout;
+      inp.addEventListener('input', ()=>{
+        clearTimeout(timeout);
+        timeout = setTimeout(async () => {
+          await STORE.updateQty(inp.dataset.key, Math.max(1, Number(inp.value||1)));
+          render();
+        }, 500);
+      });
+    });
+
+    list.querySelectorAll('button[data-del]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{ 
+        await STORE.removeItem(btn.dataset.del); 
+        render(); 
+      });
+    });
+
+
+
+    subtotalEl.textContent = STORE.fmt(STORE.total());
   }
 
-  // Wire up click events for product grid
-  function wireGridClicks(gridElement){
-    gridElement.addEventListener('click', async (e) => {
-      const addBtn = e.target.closest('.add-to-cart-btn');
-      if (!addBtn || addBtn.disabled) return;
+  checkoutBtn?.addEventListener('click', ()=>{
+    // Simple checkout modal
+    if(!document.getElementById('checkoutModal')){
+      document.body.insertAdjacentHTML('beforeend', `
+      <div class="modal fade" id="checkoutModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Checkout</h5>
+              <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="cName" class="form-label">Student's Preferred Name</label>
+                <input type="text" id="cName" class="form-control" placeholder="Preferred full name" required>
+              </div>
+              <div class="mb-3">
+                <label for="studentGrade" class="form-label">Grade</label>
+                <input
+                    type="number"
+                    id="studentGrade"
+                    class="form-control"
+                    placeholder="Grade" 
+                    min="1"
+                    max="12"
+                    required
+                    onfocus="if(this.value==1)this.value='';"
+                    oninput="if(this.value>12)this.value=12"
+                    onblur="if(!this.value || this.value<1)this.value=1"
+                    onkeypress="return /[1-9]/.test(event.key)"
+                  >
+              </div>
 
-      const card = addBtn.closest('.product-card');
-      const productId = card.dataset.productId;
-      const product = STORE.getProductById(productId);
+
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button id="placeOrderBtn" class="btn btn-primary">Place order</button>
+            </div>
+          </div>
+        </div>
+      </div>`);
+    }
+    
+    const cm = new bootstrap.Modal('#checkoutModal');
+    cm.show();
+
+    document.getElementById('placeOrderBtn').onclick = async ()=>{
+      const name = document.getElementById('cName').value.trim();
+      const grade = document.getElementById('studentGrade').value.trim();
       
-      if (!product) {
-        console.error('Product not found:', productId);
+      if(!name || !grade){ 
+        alert('Please complete the form.'); 
+        return; 
+      }
+
+      // Validate grade
+      const gradeNum = parseInt(grade);
+      if (gradeNum < 1 || gradeNum > 12) {
+        alert('Please enter a valid grade (1-12).');
         return;
       }
 
-      // Show size selection modal
-      showSizeModal(product);
-    });
-  }
+      // Disable button during processing
+      const placeOrderBtn = document.getElementById('placeOrderBtn');
+      placeOrderBtn.disabled = true;
+      placeOrderBtn.textContent = 'Processing...';
 
-  // Show size selection modal - ORIGINAL DESIGN
-  function showSizeModal(product){
-    // Simple prompt-based selection (your original might have been different)
-    // If you had a different modal design, please let me know what it looked like
-    
-    const sizeOptions = product.sizes.filter(size => {
-      const stock = product.stock?.[size] ?? Infinity;
-      return stock > 0;
-    });
-    
-    if (sizeOptions.length === 0) {
-      alert('This item is out of stock');
-      return;
-    }
-    
-    // If only one size available, skip selection
-    if (sizeOptions.length === 1) {
-      const size = sizeOptions[0];
-      const qty = parseInt(prompt(`How many ${product.name} (Size: ${size}) would you like to add?`, '1')) || 0;
-      if (qty > 0) {
-        STORE.addToCart(product, size, qty);
-        alert('Added to cart!');
+      try {
+        const customerInfo = { name, grade: gradeNum };
+        const order = await STORE.checkout(customerInfo);
+        
+        if (order) {
+          cm.hide();
+          document.getElementById('success').innerHTML = `
+            <div class="alert alert-success mt-3">✅ Order confirmed. Check your email for details.</div>`;
+          
+          // TODO: Google Sheets integration will go here
+          // This is where you'll add your spreadsheet code to send order data
+
+          
+
+
+
+          
+          render(); // Re-render to show empty cart
+          window.scrollTo({top:0, behavior:'smooth'});
+        } else {
+          alert('Checkout failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Checkout error:', error);
+        alert('Checkout failed. Please try again.');
+      } finally {
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.textContent = 'Place order';
       }
-      return;
-    }
-    
-    // Multiple sizes - show selection
-    const sizeChoice = prompt(`Select size for ${product.name}:\n${sizeOptions.map((s, i) => `${i+1}. ${s}`).join('\n')}`, '1');
-    const sizeIndex = parseInt(sizeChoice) - 1;
-    
-    if (sizeIndex >= 0 && sizeIndex < sizeOptions.length) {
-      const size = sizeOptions[sizeIndex];
-      const qty = parseInt(prompt(`How many ${product.name} (Size: ${size}) would you like to add?`, '1')) || 0;
-      if (qty > 0) {
-        STORE.addToCart(product, size, qty);
-        alert('Added to cart!');
-      }
-    }
-  }
+    };
+  });
 
-  // Show toast notification
-  function showToast(message, type = 'info'){
-    const toastHTML = `
-      <div class="toast align-items-center text-bg-${type} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
-        <div class="d-flex">
-          <div class="toast-body">${message}</div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-      </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', toastHTML);
-    const toastElement = document.querySelector('.toast:last-child');
-    const toast = new bootstrap.Toast(toastElement);
-    toast.show();
-    
-    // Remove after hiding
-    toastElement.addEventListener('hidden.bs.toast', () => {
-      toastElement.remove();
-    });
-  }
+  // Listen for cart updates
+  window.addEventListener('cartUpdated', render);
 
-  // Make UI globally available
-  window.UI = {
-    productCard,
-    wireGridClicks,
-    showToast
-  };
+  // Initial render when DOM is loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', render);
+  } else {
+    render();
+  }
 })();
