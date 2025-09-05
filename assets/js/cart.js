@@ -5,7 +5,7 @@
   const checkoutBtn = $('#checkoutBtn');
   
   // Replace this with your actual Google Apps Script web app URL
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqRn7zYm_w9i876BSE_lTnjGm4mfktPZiuCTliTsPNJkOSREGryp38SewrlGjhXjxcaw/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx45JiKg0xbacVfBL0Uw0NI5BWTR3Xzm9HDNk6T16ke8-gx6Jhse5JF3oCJqFMejpLEzg/exec';
 
   async function render(){
     // Wait for STORE to be ready
