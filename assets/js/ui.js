@@ -60,7 +60,7 @@ const UI = (function(){
                     onfocus="if(this.value==1)this.value='';"
                     oninput="if(this.value>50)this.value=50"
                     onblur="if(!this.value || this.value<1)this.value=1"
-                    onkeypress="return /[1-9]/.test(event.key)"
+                    onkeypress="return /[0-9]/.test(event.key)"
                   >
                 </div>
 
