@@ -1,5 +1,13 @@
-// cart.js - renders cart page and Firebase checkout
+// cart.js - renders cart page and Firebase checkout (ONLY RUNS ON CART PAGE)
 (function(){
+  // Only run on cart page
+  if (!document.getElementById('cartItems')) {
+    console.log('Not on cart page, skipping cart.js');
+    return;
+  }
+  
+  console.log('Cart.js loaded on cart page');
+  
   const $ = s => document.querySelector(s);
   const list = $('#cartItems');
   const subtotalEl = $('#cartSubtotal');
