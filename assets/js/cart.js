@@ -169,13 +169,10 @@
           return;
         }
 
-        // Generate order ID
-        const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const orderTotal = STORE.total();
 
         // Prepare data for Google Sheets
         const orderData = {
-          orderId: orderId,
           email: currentUser.email,
           customerName: name,
           customerGrade: gradeNum,
