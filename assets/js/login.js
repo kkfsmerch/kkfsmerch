@@ -4,14 +4,14 @@ import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstati
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDDPrE0pFoclbxzAMeRZkha8AEm-TWv8BQ",
-  authDomain: "kkfs-merch.firebaseapp.com",
-  projectId: "kkfs-merch",
-  storageBucket: "kkfs-merch.firebasestorage.app",
-  messagingSenderId: "39903297001",
-  appId: "1:39903297001:web:45449b15644c272c661f78",
-  measurementId: "G-8XEY41KLSP"
-};
+    apiKey: "AIzaSyCo_9U-Ged9xcsMwnRlNNoSJc6mV84KyaY",
+    authDomain: "kkfs-merch-55e11.firebaseapp.com",
+    projectId: "kkfs-merch-55e11",
+    storageBucket: "kkfs-merch-55e11.firebasestorage.app",
+    messagingSenderId: "324569689619",
+    appId: "1:324569689619:web:1e0763d6a05010610559e6",
+    measurementId: "G-63HP6N5Q9L"
+  };
 
 // Use the same app if already initialized
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
@@ -45,3 +45,4 @@ googleLogin.addEventListener("click", async () => {
     console.error("Login error:", error);
   }
 });
+
