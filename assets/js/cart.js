@@ -204,7 +204,7 @@
           cm.hide();
           document.getElementById('success').innerHTML = `
             <div class="alert alert-success mt-3">
-              ✅ Order confirmed! Check your email for details.
+              ✅ Order confirmed!
               ${!sheetsSuccess ? '<br><small class="text-warning">Note: There was an issue saving to our records, but your order is confirmed.</small>' : ''}
             </div>`;
           
