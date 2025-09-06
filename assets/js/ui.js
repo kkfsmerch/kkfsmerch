@@ -63,6 +63,7 @@ const UI = (function(){
                     onkeypress="return /[0-9]/.test(event.key)"
                   >
                 </div>
+
                 <button id="addToCartBtn" class="btn btn-primary w-100">Add to cart</button>
                 <p id="mStockNote" class="text-danger small mt-2 d-none">Out of stock for selected size.</p>
               </div>
