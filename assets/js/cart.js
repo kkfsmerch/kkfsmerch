@@ -105,7 +105,7 @@
                 <input type="text" id="cName" class="form-control" placeholder="Preferred full name" required>
               </div>
               <div class="mb-3">
-                <label for="studentGrade" class="form-label">Grade</label>
+                <label for="studentGrade (If you are staff then you can just choose a random grade.)" class="form-label">Grade</label>
                 <input
                     type="number"
                     id="studentGrade"
