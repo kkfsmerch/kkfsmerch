@@ -6,8 +6,8 @@
 
   // Slide data
   const slides = [
-    { img: 'assets/images/banner1.jpg', title: 'General Merch', text: 'Student Council shirts' },
-    { img: 'assets/images/banner2.jpg', title: 'General Merch', text: 'Student Coucil shirts' },
+    { img: 'assets/images/shirt1.jpg', title: 'General Merch', text: 'T Shirts' },
+    { img: 'assets/images/shirt2.jpg', title: 'General Merch', text: 'T Shirts' },
     // Add more slides here if needed
   ];
 
@@ -51,3 +51,4 @@
     navigation: { nextEl: '.button-next', prevEl: '.button-prev' }
   });
 })();
+
