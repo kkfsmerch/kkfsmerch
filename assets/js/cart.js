@@ -101,7 +101,7 @@
             </div>
             <div class="modal-body">
               <div class="mb-3">
-                <label for="cName" class="form-label">Student's Preferred Name (If you are staff then you can just choose a random grade.)</label>
+                <label for="cName" class="form-label">Student's Preferred Name (If you are staff then you can just choose a random grade)</label>
                 <input type="text" id="cName" class="form-control" placeholder="Preferred full name" required>
               </div>
               <div class="mb-3">
