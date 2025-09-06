@@ -65,10 +65,10 @@ const UI = (function(){
                 </div>
 
                 <button id="addToCartBtn" class="btn btn-primary w-100">Add to cart</button>
-                <p class="text-muted small mt-2">
-                  To complete your order, please go to the cart section and checkout.
-                </p>
               </div>
+              <p class="text-muted small mt-2">
+                  To complete your order, please go to the cart section and checkout.
+              </p>
             </div>
           </div>
         </div>
