@@ -18,7 +18,7 @@ const UI = (function(){
           <p class="text-muted small mb-2">${p.desc}</p>
           <div class="mt-auto d-flex justify-content-between align-items-center">
             <span class="price">${price}</span>
-            <button class="btn btn-primary btn-sm" data-view="${p.id}">View</button>
+            <button class="btn btn-primary btn-sm view-product-btn" data-view="${p.id}">View</button>
           </div>
           ${inStock ? '' : '<span class="mt-2 badge text-bg-secondary">Out of stock</span>'}
         </div>
@@ -32,10 +32,14 @@ const UI = (function(){
     <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalProductName">Product Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
           <div class="modal-body p-0">
             <div class="row g-0">
               <div class="col-md-6">
-                <img id="mImg" src="" class="w-100 h-100 object-fit-cover" alt="product image">
+                <img id="mImg" src="" class="w-100 h-100 object-fit-cover" alt="product image" style="min-height: 300px;">
               </div>
               <div class="col-md-6 p-3">
                 <div class="d-flex justify-content-between align-items-start">
@@ -45,10 +49,13 @@ const UI = (function(){
                 <p id="mCategory" class="text-secondary small mb-2"></p>
                 <p id="mDesc" class="mb-2"></p>
                 <div class="mb-2"><span class="price" id="mPrice"></span></div>
-                <div id="variantWrap" class="mb-3"></div>
+                <div id="variantWrap" class="mb-3">
+                  <label class="form-label">Size:</label>
+                  <div id="sizeOptions"></div>
+                </div>
                 
                 <div class="mb-3" style="max-width:200px;">
-                  <label for="mQty" class="form-label">Qty</label>
+                  <label for="mQty" class="form-label">Quantity</label>
                   <input
                     type="number"
                     id="mQty"
@@ -57,13 +64,8 @@ const UI = (function(){
                     min="1"
                     max="50"
                     required
-                    onfocus="if(this.value==1)this.value='';"
-                    oninput="if(this.value>50)this.value=50"
-                    onblur="if(!this.value || this.value<1)this.value=1"
-                    onkeypress="return /[0-9]/.test(event.key)"
                   >
                 </div>
-
                 <button id="addToCartBtn" class="btn btn-primary w-100">Add to cart</button>
                 <p id="mStockNote" class="text-danger small mt-2 d-none">Out of stock for selected size.</p>
               </div>
@@ -75,67 +77,113 @@ const UI = (function(){
   }
 
   function openProductModal(id){
+    console.log('Opening product modal for ID:', id);
+    
+    // Wait for PRODUCTS to be available
+    if (typeof PRODUCTS === 'undefined') {
+      console.error('PRODUCTS not available yet');
+      setTimeout(() => openProductModal(id), 100);
+      return;
+    }
+
     ensureProductModal();
     const p = PRODUCTS.find(x=>x.id===id); 
     if(!p) {
       console.error('Product not found:', id);
+      console.log('Available products:', PRODUCTS.map(p => p.id));
       return;
     }
     
+    console.log('Found product:', p);
+    
     const modal = new bootstrap.Modal('#productModal');
     const m = {
-      img: $('#mImg'), name: $('#mName'), cat: $('#mCategory'), desc: $('#mDesc'),
-      price: $('#mPrice'), badge: $('#mBadge'), variants: $('#variantWrap'),
-      qty: $('#mQty'), add: $('#addToCartBtn'), out: $('#mStockNote')
+      img: $('#mImg'), 
+      name: $('#mName'), 
+      cat: $('#mCategory'), 
+      desc: $('#mDesc'),
+      price: $('#mPrice'), 
+      badge: $('#mBadge'), 
+      variants: $('#sizeOptions'),
+      qty: $('#mQty'), 
+      add: $('#addToCartBtn'), 
+      out: $('#mStockNote')
     };
+    
+    // Check if elements exist
+    if (!m.img || !m.name || !m.add) {
+      console.error('Modal elements not found');
+      return;
+    }
     
     m.img.src = p.img; 
     m.name.textContent = p.name;
     m.cat.textContent = `${p.category} • ${p.type}`;
     m.desc.textContent = p.desc; 
-    m.price.textContent = STORE?.fmt ? STORE.fmt(p.price) : `$${(p.price/100).toFixed(2)}`;
+    m.price.textContent = STORE?.fmt ? STORE.fmt(p.price) : `₩${p.price.toLocaleString('ko-KR')}`;
     m.badge.classList.toggle('d-none', !p.limited);
 
+    // Build size options
     m.variants.innerHTML = p.sizes.map(s=>{
-      const disabled = (p.stock[s]||0)===0 ? 'disabled' : '';
-      const note = disabled ? ' (OOS)' : '';
+      const stock = p.stock[s] || 0;
+      const disabled = stock === 0 ? 'disabled' : '';
+      const note = disabled ? ' (Out of Stock)' : stock < Infinity ? ` (${stock} left)` : '';
       return `<div class="form-check form-check-inline size-pill mb-2">
-        <input ${disabled} class="form-check-input" type="radio" name="size" id="sz-${s}" value="${s}">
+        <input ${disabled} class="form-check-input size-radio" type="radio" name="modalSize" id="sz-${s}" value="${s}">
         <label class="form-check-label" for="sz-${s}">${s}${note}</label>
       </div>`;
     }).join('');
 
-    let sel = null;
-    const first = p.sizes.find(s => (p.stock[s]||0) > 0);
-    if(first){ 
-      const el = document.getElementById('sz-'+first); 
+    // Select first available size
+    let selectedSize = null;
+    const firstAvailable = p.sizes.find(s => (p.stock[s] || 0) > 0);
+    if(firstAvailable){ 
+      const el = document.getElementById('sz-' + firstAvailable); 
       if(el){ 
         el.checked = true; 
-        sel = first; 
+        selectedSize = firstAvailable; 
       } 
     }
+    
     m.out.classList.add('d-none'); 
-    m.add.disabled = !first;
+    m.add.disabled = !firstAvailable;
 
-    m.variants.querySelectorAll('input').forEach(inp=>{
+    // Size change handlers
+    document.querySelectorAll('.size-radio').forEach(inp=>{
       inp.addEventListener('change', ()=>{
-        sel = inp.value;
-        const left = p.stock[sel]||0;
-        m.out.classList.toggle('d-none', left>0);
-        m.add.disabled = !(left>0);
-        if(Number(m.qty.value||1) > left) m.qty.value = Math.max(1,left);
+        if (inp.checked) {
+          selectedSize = inp.value;
+          const stock = p.stock[selectedSize] || 0;
+          m.out.classList.toggle('d-none', stock > 0);
+          m.add.disabled = stock <= 0;
+          
+          // Update quantity max
+          if(Number(m.qty.value || 1) > stock && stock > 0) {
+            m.qty.value = Math.max(1, stock);
+          }
+          m.qty.max = stock > 0 ? stock : 1;
+        }
       });
     });
 
+    // Quantity input handler
     m.qty.addEventListener('input', ()=>{
-      const left = p.stock[sel]||0;
-      if(Number(m.qty.value||1) > left) m.qty.value = Math.max(1,left);
+      if (!selectedSize) return;
+      const stock = p.stock[selectedSize] || 0;
+      const value = Number(m.qty.value || 1);
+      if(value > stock && stock > 0) {
+        m.qty.value = Math.max(1, stock);
+      }
+      if(value < 1) {
+        m.qty.value = 1;
+      }
     });
 
-    // Fixed add to cart functionality
+    // Add to cart handler
     m.add.onclick = async ()=>{
+      console.log('Add to cart clicked');
 
-      if(!sel) {
+      if(!selectedSize) {
         alert('Please select a size');
         return;
       }
@@ -157,11 +205,14 @@ const UI = (function(){
       m.add.textContent = 'Adding...';
       
       try {
-        await STORE.addToCart(p, sel, Math.max(1, Number(m.qty.value||1)));
+        const quantity = Math.max(1, Number(m.qty.value || 1));
+        console.log('Adding to cart:', p.name, selectedSize, quantity);
+        
+        await STORE.addToCart(p, selectedSize, quantity);
         modal.hide();
         
         // Show success toast
-        showToast(`${p.name} (${sel}) added to cart!`, 'success');
+        showToast(`${p.name} (${selectedSize}) added to cart!`, 'success');
         
       } catch (error) {
         console.error('Error adding to cart:', error);
@@ -201,17 +252,70 @@ const UI = (function(){
   }
 
   function wireGridClicks(container){
+    console.log('Wiring grid clicks for container:', container);
+    
+    // Remove existing event listeners to prevent duplicates
+    container.querySelectorAll('button[data-view]').forEach(btn => {
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+    });
+    
+    // Add new event listeners
     container.querySelectorAll('button[data-view]').forEach(btn=>{
+      console.log('Adding click listener to button:', btn);
+      
       btn.addEventListener('click', (e)=> {
         e.preventDefault();
+        e.stopPropagation();
+        
         const productId = btn.getAttribute('data-view');
-        console.log('Opening product modal for:', productId);
+        console.log('View button clicked for product ID:', productId);
+        
+        if (!productId) {
+          console.error('No product ID found on button');
+          return;
+        }
+        
         openProductModal(productId);
       });
     });
+    
+    console.log('Wired', container.querySelectorAll('button[data-view]').length, 'view buttons');
   }
 
-  return { productCard, wireGridClicks, openProductModal, showToast };
+  // Alternative event delegation approach
+  function initGlobalClickHandler() {
+    document.addEventListener('click', function(e) {
+      // Check if clicked element or its parent has data-view attribute
+      const viewBtn = e.target.closest('button[data-view]');
+      if (viewBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const productId = viewBtn.getAttribute('data-view');
+        console.log('Global click handler - View button clicked for:', productId);
+        
+        if (productId) {
+          openProductModal(productId);
+        }
+      }
+    });
+  }
+
+  // Initialize global click handler when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGlobalClickHandler);
+  } else {
+    initGlobalClickHandler();
+  }
+
+  return { 
+    productCard, 
+    wireGridClicks, 
+    openProductModal, 
+    showToast,
+    initGlobalClickHandler
+  };
 })();
 
 // Make UI globally available
