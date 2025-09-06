@@ -65,8 +65,6 @@ const UI = (function(){
                 </div>
 
                 <button id="addToCartBtn" class="btn btn-primary w-100">Add to cart</button>
-                <p id="mStockNote" class="text-danger small mt-2 d-none">Out of stock for selected size.</p>
-
                 <p class="text-muted small mt-2">
                   To complete your order, please go to the cart section and checkout.
                 </p>
