@@ -1,6 +1,6 @@
 // products.js - sample dataset
 const PRODUCTS = [
-  // Athletic
+  // Athletic 
   //{id:'blue navy hoodie', name:'Blue Hoodie', category:'athletic', type:'tops', price:40000, limited:true, desc:'Navy Hoodie', sizes:['S','M','L','XL'], stock:{S:0,M:0,L:0,XL:0}, img:'assets/images/bluehoodie.png', createdAt:'2025-08-02'},
 
   // General
