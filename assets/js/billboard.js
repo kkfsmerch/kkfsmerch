@@ -6,8 +6,8 @@
 
   // Slide data
   const slides = [
-    { img: 'assets/images/shirt1.jpg', title: 'General Merch', text: 'T Shirts' },
-    { img: 'assets/images/shirt2.jpg', title: 'General Merch', text: 'T Shirts' },
+    { img: 'assets/images/shirt1.png', title: 'General Merch', text: 'T Shirts' },
+    { img: 'assets/images/shirt2.png', title: 'General Merch', text: 'T Shirts' },
     // Add more slides here if needed
   ];
 
@@ -51,4 +51,5 @@
     navigation: { nextEl: '.button-next', prevEl: '.button-prev' }
   });
 })();
+
 
