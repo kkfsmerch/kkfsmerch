@@ -15,7 +15,7 @@ const firebaseConfig = {
 // Initialize Firebase (or use existing app)
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
+/*
 // Redirect to login if user is not logged in
 onAuthStateChanged(auth, (user) => {
   if (!user && window.location.pathname !== '/login.html') {
@@ -23,5 +23,6 @@ onAuthStateChanged(auth, (user) => {
   }
 
 });
+
 
 
