@@ -1,10 +1,10 @@
 // products.js - sample dataset
 const PRODUCTS = [
   // Athletic
-  //{id:'blue navy hoodie', name:'Blue Hoodie', category:'athletic', type:'tops', price:40000, limited:true, desc:'Navy Hoodie', sizes:['S','M','L','XL'], stock:{S:0,M:0,L:0,XL:0}, img:'assets/images/bluehoodie.png', createdAt:'2025-08-02'},
+  //{id:'blue navy hoodie', name:'Blue Hoodie', category:'athletic', type:'tops', price:40000, limited:true, desc:'Navy Hoodie', sizes:['S','M','L','XL'], stock:{S:0,M:0,L:0,XL:0}, img:'assets/images/bluehoodie.jpg', createdAt:'2025-08-02'},
 
   // General
-  //{id:'shirt one', name:'Shirt 1', category:'general', type:'tops', price:23000, limited:false, desc:'T shirt merch', sizes:['S','M','L'], stock:{S:Infinity,M:Infinity,L:Infinity}, img:'assets/images/shirt1.png', createdAt:'2025-09-06'},
+  //{id:'shirt one', name:'Shirt 1', category:'general', type:'tops', price:23000, limited:false, desc:'T shirt merch', sizes:['S','M','L'], stock:{S:Infinity,M:Infinity,L:Infinity}, img:'assets/images/shirt1.jpg', createdAt:'2025-09-06'},
   {id:'shirt one', name:'Shirt 1', category:'general', type:'tops', price:32000, limited:false, desc:'T shirt merch', sizes:['S','M','L','XL'], stock:{S:Infinity,M:Infinity,L:Infinity, XL:Infinity}, imgs:['assets/images/shirt/shirt1/shirt1og.png',
                                                                                                                                                                                                              'assets/images/shirt/shirt1/shirt10.JPG',
                                                                                                                                                                                                              'assets/images/shirt/shirt1/shirt11.JPG'],createdAt:'2025-09-06'},
@@ -32,7 +32,7 @@ const PRODUCTS = [
   {id:'regularhat', name:'Printed Merlins Hat', category:'general', type:'etc', price:23000, limited:false, desc:'White Printed Merlins Hat', sizes:['Kids', 'Adult'], stock:{Kids: Infinity, Adult:Infinity}, img:'assets/images/accessories/hat/regularhat.png', createdAt:'2025-09-06'},
 
   
- // Seasonal {id:'red', name:'Air House Shirt', category:'general', type:'tops', price:30000, limited:false, desc:'Red Air House Shirt', sizes:['13','14','15','16','17'], stock:{13:Infinity,14:Infinity,15:Infinity, 16:Infinity, 17:Infinity}, img:'assets/images/house shirts/wind/redhouse.png', createdAt:'2025-09-06'},
+ // Seasonal {id:'red', name:'Air House Shirt', category:'general', type:'tops', price:30000, limited:false, desc:'Red Air House Shirt', sizes:['13','14','15','16','17'], stock:{13:Infinity,14:Infinity,15:Infinity, 16:Infinity, 17:Infinity}, img:'assets/images/house shirts/wind/redhouse.jpg', createdAt:'2025-09-06'},
   
 ];
 window.PRODUCTS = PRODUCTS;
