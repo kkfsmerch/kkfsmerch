@@ -6,8 +6,8 @@
 
   // Slide data
   const slides = [
-    { img: '../assets/images/shirt/mixed/shirt1.JPG', title: 'General Merch', text: 'T Shirts' },
-    { img: '../assets/images/shirt/mixed/shirt9.JPG', title: 'General Merch', text: 'T Shirts' },
+    { img: 'assets/images/shirt/mixed/shirt1.JPG', title: 'General Merch', text: 'T Shirts' },
+    { img: 'kkfsmerch/assets/images/shirt/mixed/shirt9.JPG', title: 'General Merch', text: 'T Shirts' },
     { img: '../assets/images/shirt/mixed/shirt15.JPG', title: 'General Merch', text: 'T Shirts' },
     { img: '../assets/images/shirt/mixed/shirt24.JPG', title: 'General Merch', text: 'T Shirts' },
     { img: '../assets/images/house shirts/mixed/_DSC0019.webp', title: 'General Merch', text: 'T Shirts' },
@@ -55,6 +55,7 @@
     navigation: { nextEl: '.button-next', prevEl: '.button-prev' }
   });
 })();
+
 
 
 
