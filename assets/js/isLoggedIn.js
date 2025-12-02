@@ -16,7 +16,7 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
 const analytics = getAnalytics(app);
-
+/**
 onAuthStateChanged(auth, (user) => {
   const loginPage = document.getElementById("LoginPage");
   if (user) {
@@ -25,5 +25,6 @@ onAuthStateChanged(auth, (user) => {
     loginPage.style.display = "block"; // show login page
   }
 });
+
 
 
