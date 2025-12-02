@@ -5,9 +5,9 @@ const PRODUCTS = [
 
   // General
   //{id:'shirt one', name:'Shirt 1', category:'general', type:'tops', price:23000, limited:false, desc:'T shirt merch', sizes:['S','M','L'], stock:{S:Infinity,M:Infinity,L:Infinity}, img:'assets/images/shirt1.jpg', createdAt:'2025-09-06'},
-  {id:'shirt one', name:'Shirt 1', category:'general', type:'tops', price:32000, limited:false, desc:'T shirt merch', sizes:['S','M','L','XL'], stock:{S:Infinity,M:Infinity,L:Infinity, XL:Infinity}, imgs:['assets/images/shirt/shirt1/shirt1og.png',
-                                                                                                                                                                                                             'assets/images/shirt/shirt1/shirt10.JPG',
-                                                                                                                                                                                                             'assets/images/shirt/shirt1/shirt11.JPG'],createdAt:'2025-09-06'},
+  {id:'shirt one', name:'Shirt 1', category:'general', type:'tops', price:32000, limited:false, desc:'T shirt merch', sizes:['S','M','L','XL'], stock:{S:Infinity,M:Infinity,L:Infinity, XL:Infinity}, imgs:['kkfsmerch/assets/images/shirt/shirt1/shirt1og.png',
+                                                                                                                                                                                                             'kkfsmerch/assets/images/shirt/shirt1/shirt10.JPG',
+                                                                                                                                                                                                             'kkfsmerch/assets/images/shirt/shirt1/shirt11.JPG'],createdAt:'2025-09-06'},
   
   {id:'shirt two', name:'Shirt 2', category:'general', type:'tops', price:32000, limited:false, desc:'T shirt merch', sizes:['S','M','L','XL'], stock:{S:Infinity,M:Infinity,L:Infinity, XL:Infinity}, img:'assets/images/shirt/shirt2/shirt2.png', createdAt:'2025-09-06'},
   
